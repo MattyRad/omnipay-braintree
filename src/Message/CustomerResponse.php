@@ -7,10 +7,16 @@ namespace Omnipay\Braintree\Message;
  */
 class CustomerResponse extends Response
 {
+
+    public function isSuccessful()
+    {
+       return isset($this->data->id);
+    }
+
     public function getCustomerData()
     {
-        if (isset($this->data->customer)) {
-            return $this->data->customer;
+        if (isset($this->data)) {
+            return $this->data;
         }
 
         return null;
