@@ -454,7 +454,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
                 'name' => $item->getName(),
                 'description' => $item->getDescription(),
                 'totalAmount' => abs($item->getPrice()),
-                'unitAmount' => abs(number_format($unit_amount, 4)),
+                'unitAmount' => number_format(abs($unit_amount), 4),
                 'kind' => $item_kind,
                 'quantity' => $item->getQuantity(),
             ));
