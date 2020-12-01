@@ -439,9 +439,8 @@ abstract class AbstractRequest extends BaseAbstractRequest
         if (! $this->getItems()) {
             return $line_items;
         }
-
+        
         foreach ($this->getItems() as $item) {
-
             $item_kind = ($item->getPrice() >= 0.00)
                 ? 'debit'
                 : 'credit';
@@ -450,11 +449,40 @@ abstract class AbstractRequest extends BaseAbstractRequest
                 ? $item->getPrice() / $item->getQuantity()
                 : $item->getPrice();
 
+            if ($item_kind === 'debit') {
+                // PayPal only accepts precision up to 2
+                $rounded_unit_amount = number_format(round($unit_amount, 2, PHP_ROUND_HALF_DOWN), 2);
+
+                $unit_amount_proration = ($unit_amount - $rounded_unit_amount) * $item->getQuantity();
+
+                if ($unit_amount_proration != 0) {
+                    array_push($line_items, array(
+                        'name' => 'Unit amount proration',
+                        'description' => 'Unit amount proration',
+                        'totalAmount' => number_format($unit_amount_proration, 2),
+                        'unitAmount' => number_format($unit_amount_proration, 2),
+                        'kind' => $item_kind,
+                        'quantity' => 1,
+                    ));
+                }
+
+                array_push($line_items, array(
+                    'name' => $item->getName(),
+                    'description' => $item->getDescription(),
+                    'totalAmount' => number_format(abs($item->getPrice()), 2),
+                    'unitAmount' => $rounded_unit_amount,
+                    'kind' => $item_kind,
+                    'quantity' => $item->getQuantity(),
+                ));
+
+                continue;
+            }
+
             array_push($line_items, array(
                 'name' => $item->getName(),
                 'description' => $item->getDescription(),
                 'totalAmount' => abs($item->getPrice()),
-                'unitAmount' => abs(number_format($unit_amount, 4)),
+                'unitAmount' => number_format(abs($unit_amount), 2),
                 'kind' => $item_kind,
                 'quantity' => $item->getQuantity(),
             ));
